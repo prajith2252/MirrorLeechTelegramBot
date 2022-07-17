@@ -42,15 +42,11 @@ def cancel_mirror(update, context):
 
 def cancel_all(status):
     gid = ''
-    while True:
-        dl = getAllDownload(status)
-        if dl:
-            if dl.gid() != gid:
-                gid = dl.gid()
-                dl.download().cancel_download()
-                sleep(1)
-        else:
-            break
+    while dl := getAllDownload(status):
+        if dl.gid() != gid:
+            gid = dl.gid()
+            dl.download().cancel_download()
+            sleep(1)
 
 def cancell_all_buttons(update, context):
     buttons = button_build.ButtonMaker()
@@ -73,8 +69,6 @@ def cancel_all_update(update, context):
         cancel_all(data[1])
     else:
         query.answer(text="This is not yours, STFU !", show_alert=True)
-
-
 
 cancel_mirror_handler = CommandHandler(BotCommands.CancelMirror, cancel_mirror,
                                        filters=(CustomFilters.authorized_chat | CustomFilters.authorized_user), run_async=True)

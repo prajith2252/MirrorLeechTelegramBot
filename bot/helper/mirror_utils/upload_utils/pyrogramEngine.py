@@ -5,10 +5,11 @@ from pyrogram.errors import FloodWait, RPCError
 from PIL import Image
 from threading import RLock
 from bot import DOWNLOAD_DIR, AS_DOCUMENT, AS_DOC_USERS, AS_MEDIA_USERS, CUSTOM_FILENAME, \
-                 EXTENSION_FILTER, TG_SPLIT_SIZE, app, LEECH_LOG, BOT_PM, tgBotMaxFileSize, rss_session
+                 EXTENSION_FILTER, app, LEECH_LOG, BOT_PM, TG_SPLIT_SIZE, tgBotMaxFileSize, rss_session
 from bot.helper.ext_utils.fs_utils import take_ss, get_media_info, get_path_size
 from bot.helper.ext_utils.bot_utils import get_readable_file_size
 from pyrogram.types import Message
+
 LOGGER = getLogger(__name__)
 getLogger("pyrogram").setLevel(WARNING)
 VIDEO_SUFFIXES = ("MKV", "MP4", "MOV", "WMV", "3GP", "MPG", "WEBM", "AVI", "FLV", "M4V", "GIF")
@@ -99,7 +100,7 @@ class TgUploader:
                         width = 480
                         height = 320
                     if not file_.upper().endswith(("MKV", "MP4")):
-                        file_ = ospath.splitext(file_)[0] + '.mp4'
+                        file_ = f'{ospath.splitext(file_)[0]}.mp4'
                         new_path = ospath.join(dirpath, file_)
                         osrename(up_path, new_path)
                         up_path = new_path
@@ -116,7 +117,6 @@ class TgUploader:
                                                                   supports_streaming=True,
                                                                   disable_notification=True,
                                                                   progress=self.__upload_progress)
-                            
                             if BOT_PM:
                                 try:
                                     app.copy_message(chat_id=self.__user_id, from_chat_id=self.__sent_msg.chat.id, message_id=self.__sent_msg.id)

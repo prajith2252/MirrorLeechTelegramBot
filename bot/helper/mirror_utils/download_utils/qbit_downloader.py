@@ -111,13 +111,13 @@ class QbDownloader:
                     self.__onDownloadError("Dead Torrent!")
             elif tor_info.state == "downloading":
                 self.__stalled_time = time()
-                if not self.__dupChecked and STOP_DUPLICATE and ospath.isdir(f'{self.__path}') and not self.select:
+                if not self.__dupChecked and STOP_DUPLICATE and ospath.isdir(f'{self.__path}') and not self.__listener.isLeech and not self.select:
                     LOGGER.info('Checking File/Folder if already in Drive')
                     qbname = str(listdir(f'{self.__path}')[-1])
                     if qbname.endswith('.!qB'):
                         qbname = ospath.splitext(qbname)[0]
                     if self.__listener.isZip:
-                        qbname = qbname + ".zip"
+                        qbname = f"{qbname}.zip"
                     elif self.__listener.extract:
                         try:
                            qbname = get_base_name(qbname)
@@ -143,7 +143,7 @@ class QbDownloader:
                     if ZIP_UNZIP_LIMIT is not None and arch:
                         mssg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
                         limit = ZIP_UNZIP_LIMIT
-                    if LEECH_LIMIT is not None and arch:
+                    if LEECH_LIMIT is not None and self.__listener.isLeech:
                         mssg = f'Leech limit is {LEECH_LIMIT}GB'
                         limit = LEECH_LIMIT
                     elif TORRENT_DIRECT_LIMIT is not None:
