@@ -31,7 +31,9 @@ LOGGER = getLogger(__name__)
 
 def getConfig(name: str):
     return environ[name]
+
 CONFIG_FILE_URL = environ.get('CONFIG_FILE_URL')
+
 try:
     if len(CONFIG_FILE_URL) == 0:
         raise TypeError
@@ -40,6 +42,7 @@ try:
         if res.status_code == 200:
             with open('config.env', 'wb+') as f:
                 f.write(res.content)
+            log_info("Succesfully got config.env from CONFIG_FILE_URL")
         else:
             log_error(f"Failed to download config.env {res.status_code}")
     except Exception as e:
