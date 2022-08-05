@@ -1,10 +1,11 @@
+import contextlib
 from logging import FileHandler, StreamHandler, INFO, basicConfig, error as log_error, info as log_info
 from os import path as ospath, environ, execl as osexecl
 from subprocess import run as srun, call as scall
 from requests import get as rget
 from dotenv import load_dotenv
 from sys import executable
-import pkg_resources
+import pkg_resources, requests, os
 
 if ospath.exists('log.txt'):
     with open('log.txt', 'r+') as f:
@@ -14,23 +15,33 @@ basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     handlers=[FileHandler('log.txt'), StreamHandler()],
                     level=INFO)
 
-CONFIG_FILE_URL = environ.get('CONFIG_FILE_URL')
-try:
-    if len(CONFIG_FILE_URL) == 0:
-        raise TypeError
+def get_config_from_url(configurl: str):
     try:
-        res = rget(CONFIG_FILE_URL)
+        if os.path.isfile('config.env'):
+            with contextlib.suppress(Exception):
+                os.remove('config.env')
+        if ' ' in configurl:
+            log_info("Detected gitlab snippet url. Example: 26265 sdg6-626-g6256")
+            snipid, apikey = configurl.split(maxsplit=1)
+            main_api = f"https://gitlab.com/api/v4/snippets/{snipid}/raw"
+            headers = {'content-type': 'application/json', 'PRIVATE-TOKEN': apikey}
+            res = requests.get(main_api, headers=headers)
+        else:
+            res = requests.get(configurl)
         if res.status_code == 200:
+            log_info("Config uzaktan alındı. Status 200.")
             with open('config.env', 'wb+') as f:
                 f.write(res.content)
+            load_dotenv('config.env', override=True)
         else:
             log_error(f"Failed to download config.env {res.status_code}")
     except Exception as e:
         log_error(f"CONFIG_FILE_URL: {e}")
-except:
-    pass
 
-load_dotenv('config.env', override=True)
+if CONFIG_FILE_URL := os.environ.get('CONFIG_FILE_URL', None):
+    if CONFIG_FILE_URL: get_config_from_url(CONFIG_FILE_URL)
+else:
+    log_error("Lokal config.env kullanılacak")
 
 # update packages +
 if environ.get('UPDATE_EVERYTHING_WHEN_RESTART', 'False').lower() == 'true':
@@ -43,12 +54,12 @@ UPSTREAM_BRANCH = environ.get('UPSTREAM_BRANCH')
 try:
     if len(UPSTREAM_REPO) == 0:
        raise TypeError
-except:
-    UPSTREAM_REPO = "https://github.com/HuzunluArtemis/MirrorLeechTelegramBot"
+except Exception:
+    UPSTREAM_REPO = "https://gitlab.com/huzunluartemis/MirrorLeechTelegramBot"
 try:
     if len(UPSTREAM_BRANCH) == 0:
        raise TypeError
-except:
+except Exception:
     UPSTREAM_BRANCH = 'h-code'
 
 if ospath.exists('.git'):
